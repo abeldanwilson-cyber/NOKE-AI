@@ -32,7 +32,7 @@ except ImportError:
 # ===============================================
 #  VOICE ENGINE
 # ===============================================
-def speak(text: str, rate: int = 165):
+def speak(text: str, rate: int = 190):
     print(f"\n[NOKE]: {text}")
     try:
         engine = pyttsx3.init()
