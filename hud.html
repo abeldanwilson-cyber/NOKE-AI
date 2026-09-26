@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NOKE // STARK OS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #03080f;
+            color: #00e5ff;
+            font-family: 'Consolas', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 { font-size: 24px; letter-spacing: 6px; margin-bottom: 40px; text-shadow: 0 0 15px #00e5ff; }
+        .arc-reactor {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px dashed rgba(0, 229, 255, 0.7);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+        }
+        .ring-1 { width: 100%; height: 100%; animation: rot 16s linear infinite; }
+        .ring-2 { width: 75%; height: 75%; border: 2px solid #00e5ff; animation: rot-rev 10s linear infinite; }
+        .core {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, #fff, #00e5ff, #002233);
+            border-radius: 50%;
+            box-shadow: 0 0 50px #00e5ff, 0 0 80px #00e5ff;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .status { margin-top: 40px; letter-spacing: 4px; font-size: 14px; animation: blink 2s infinite; }
+        @keyframes rot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes rot-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+    <h1>NOKE // NEURAL CORE</h1>
+    <div class="arc-reactor">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="core"></div>
+    </div>
+    <div class="status">● SENSORY ARRAY ONLINE</div>
+</body>
+</html>

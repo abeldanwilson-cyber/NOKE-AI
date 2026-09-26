@@ -1,0 +1,34 @@
+# Upload and temp scripts - never upload these
+github_upload.py
+
+# Personal memory and profile - private data
+noke_memory.json
+noke_profile.json
+noke_state.json
+
+# Temp voice files
+_speak.vbs
+_noke_text.txt
+_t.vbs
+_t.txt
+_test.vbs
+_test.txt
+
+# Downloaded videos and audio
+noke_downloads/
+
+# Auto-generated skills written by NOKE
+skills/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Screenshots taken by NOKE
+noke_view.png
+
+# Environment and secret files
+.env
+*.env
