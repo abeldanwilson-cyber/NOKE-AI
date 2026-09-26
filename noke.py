@@ -11,12 +11,15 @@ import ollama
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-# Modular Subsystems
-from system_control import SystemController
+# ── Modular Subsystems ──────────────────────────
+from system_control  import SystemController
 from trading_module  import TradingAssistant
 from security_module import SecurityAssistant
 from coder_module    import SkillForge
 from web_module      import WebEngine
+from security_guard  import SecurityGuard
+from pc_guardian     import PCGuardian
+from resolver        import SelfSolver
 
 try:
     from ddgs import DDGS
@@ -205,46 +208,144 @@ def needs_internet(query: str) -> bool:
     return any(t in q for t in SEARCH_TRIGGERS)
 
 # ===============================================
-#  ALL COMMANDS
+#  FULL COMMAND DISPATCH ENGINE
 # ===============================================
 def handle_pc_command(query: str):
     q         = query.lower()
     user_name = user_profile.get("name", "Able")
 
-    # Emotion & Status
+    # ── Status & Emotion ───────────────────────
     if "how are you" in q or "your mood" in q or "how do you feel" in q:
         mood = noke_state.get("mood", "Sharp & Alert")
         return f"Current state is {mood}, {user_name}. All systems operational."
 
-    # Time & Date
+    # ── Time & Date ────────────────────────────
     if "what time" in q or "current time" in q:
         return f"The time is {datetime.now().strftime('%I:%M %p')}."
     if "what date" in q or "what day" in q:
         return f"Today is {datetime.now().strftime('%A, %B %d')}."
 
-    # System Diagnostics
+    # ── FULL SYSTEM REPORTS ────────────────────
+    if "full system report" in q or "full report" in q:
+        return SystemController.full_system_report()
+    if any(k in q for k in ["health check", "pc health", "system health"]):
+        return PCGuardian.health_check()
     if any(k in q for k in ["system status", "cpu", "diagnostics", "ram status"]):
         d = SystemController.get_system_telemetry()
-        return f"CPU at {d['cpu']}, memory {d['ram']}, battery {d['battery']}."
+        return f"CPU at {d['cpu']}, memory {d['ram']}, battery {d['battery']}, disk {d['disk_free']}."
+    if "system info" in q or "pc info" in q or "system specs" in q:
+        return PCGuardian.system_info()
+    if "battery" in q:
+        return PCGuardian.battery_status()
+    if "network speed" in q or "internet speed" in q:
+        return PCGuardian.network_speed()
+    if "disk" in q and ("space" in q or "storage" in q or "analysis" in q):
+        return PCGuardian.disk_analysis()
+    if "wifi" in q or "wi-fi" in q or "wireless" in q:
+        return SystemController.get_wifi_info()
 
-    # Audio & Screen
+    # ── TOP PROCESSES ──────────────────────────
+    if "top processes" in q or "what is using" in q or "list processes" in q:
+        return PCGuardian.top_ram_processes()
+    if "top cpu" in q or "cpu usage" in q:
+        return PCGuardian.top_cpu_processes()
+    if "kill" in q and "process" in q:
+        proc = q.replace("kill process", "").replace("kill", "").replace("noke", "").strip()
+        return SystemController.kill_process(proc)
+
+    # ── AUDIO & SCREEN ─────────────────────────
     if "unmute" in q:
         return SystemController.mute_volume(False)
     if "mute" in q:
         return SystemController.mute_volume(True)
+    if "set volume" in q or "volume to" in q:
+        nums = re.findall(r'\d+', q)
+        level = int(nums[0]) if nums else 50
+        return SystemController.set_volume(level)
     if "screenshot" in q or "capture screen" in q:
         return SystemController.take_screenshot()
     if "lock" in q and ("pc" in q or "screen" in q or "computer" in q):
         return SystemController.lock_pc()
 
-    # Launch Apps
+    # ── POWER CONTROL ──────────────────────────
+    if "shutdown" in q and "pc" in q:
+        return SystemController.shutdown_pc(30)
+    if "restart" in q and ("pc" in q or "computer" in q):
+        return SystemController.restart_pc(30)
+    if "cancel shutdown" in q:
+        return SystemController.cancel_shutdown()
+    if "sleep" in q and ("pc" in q or "computer" in q or "mode" in q):
+        return SystemController.sleep_pc()
+
+    # ── CLIPBOARD ──────────────────────────────
+    if "read clipboard" in q or "what is in clipboard" in q or "clipboard content" in q:
+        return SystemController.read_clipboard()
+    if "copy to clipboard" in q or "put in clipboard" in q:
+        text = q.replace("copy to clipboard", "").replace("put in clipboard", "").replace("noke", "").strip()
+        return SystemController.write_clipboard(text)
+
+    # ── AUTO-TYPE ──────────────────────────────
+    if "type" in q and ("for me" in q or "write for me" in q or "auto type" in q):
+        text = q.replace("type for me", "").replace("write for me", "").replace("auto type", "").replace("noke", "").strip()
+        return SystemController.type_text(text)
+
+    # ── FILE MANAGER ───────────────────────────
+    if "list files" in q or "show files" in q or "what is in" in q:
+        path = q.replace("list files in", "").replace("show files in", "").replace("what is in", "").replace("noke", "").strip()
+        return SystemController.list_directory(path if path else None)
+    if "create folder" in q or "make folder" in q:
+        path = q.replace("create folder", "").replace("make folder", "").replace("noke", "").strip()
+        return SystemController.create_folder(path)
+    if "open file" in q:
+        path = q.replace("open file", "").replace("noke", "").strip()
+        return SystemController.open_file(path)
+    if "delete file" in q or "delete folder" in q:
+        path = q.replace("delete file", "").replace("delete folder", "").replace("noke", "").strip()
+        return SystemController.delete_file(path)
+
+    # ── NOTIFICATION ───────────────────────────
+    if "send notification" in q or "notify me" in q or "remind me" in q:
+        msg = q.replace("send notification", "").replace("notify me", "").replace("remind me", "").replace("noke", "").strip()
+        return SystemController.send_notification("NOKE Reminder", msg if msg else "Reminder from NOKE")
+
+    # ── STARTUP ────────────────────────────────
+    if "add noke to startup" in q or "start noke on boot" in q:
+        noke_path = os.path.abspath("noke.py")
+        python_path = "python"
+        return SystemController.add_to_startup("NOKE-AI", f"{python_path} {noke_path}")
+    if "remove noke from startup" in q:
+        return SystemController.remove_from_startup("NOKE-AI")
+
+    # ── TEMP CLEANUP ───────────────────────────
+    if "clean temp" in q or "clear temp" in q or "free up space" in q:
+        return SystemController.clean_temp()
+
+    # ── LAUNCH APPS ────────────────────────────
     if ("open" in q or "launch" in q) and any(
-        app in q for app in ["chrome", "spotify", "notepad", "discord", "code", "calc", "terminal"]
+        app in q for app in ["chrome", "spotify", "notepad", "discord", "code",
+                              "calc", "terminal", "cmd", "explorer", "paint",
+                              "powershell", "task manager", "steam", "vlc"]
     ):
         app = q.replace("open", "").replace("launch", "").replace("noke", "").strip()
         return SystemController.launch_app(app)
 
-    # TRADING ENGINE
+    # ── SECURITY GUARD ─────────────────────────
+    if "set pin" in q or "setup pin" in q:
+        pin = q.replace("set pin to", "").replace("setup pin", "").replace("set pin", "").replace("noke", "").strip()
+        if pin:
+            return SecurityGuard.setup_pin(pin)
+        return "Please say: set PIN to followed by your PIN number, Sir."
+    if "remove pin" in q or "disable pin" in q:
+        pin = q.replace("remove pin", "").replace("disable pin", "").replace("noke", "").strip()
+        return SecurityGuard.remove_pin(pin)
+    if "session info" in q or "session status" in q:
+        return SecurityGuard.get_session_info()
+    if "show audit log" in q or "activity log" in q or "command history" in q:
+        return SecurityGuard.read_audit_log(15)
+    if "clear audit log" in q or "clear log" in q:
+        return SecurityGuard.clear_audit_log()
+
+    # ── TRADING ENGINE ─────────────────────────
     if "stock price" in q or "share price" in q:
         return TradingAssistant.get_stock_price(q.split()[-1].upper())
     if any(c in q for c in ["bitcoin", "btc", "ethereum", "eth", "crypto", "solana", "doge"]):
@@ -255,7 +356,7 @@ def handle_pc_command(query: str):
     if "market summary" in q:
         return TradingAssistant.get_market_summary()
 
-    # SECURITY SUITE
+    # ── SECURITY SUITE ─────────────────────────
     if "my ip" in q or "what is my ip" in q:
         return SecurityAssistant.get_my_ip()
     if "scan ports" in q:
@@ -264,16 +365,13 @@ def handle_pc_command(query: str):
     if "ping" in q:
         return SecurityAssistant.ping_host(q.replace("ping", "").replace("noke", "").strip())
     if "check website" in q:
-        target = q.replace("check website", "").strip()
-        return SecurityAssistant.check_website(target)
+        return SecurityAssistant.check_website(q.replace("check website", "").strip())
     if "dns" in q:
-        target = q.replace("dns lookup", "").replace("dns", "").replace("for", "").strip()
-        return SecurityAssistant.get_dns(target)
+        return SecurityAssistant.get_dns(q.replace("dns lookup", "").replace("dns", "").replace("for", "").strip())
     if "check password" in q or "password strength" in q:
-        pwd = q.replace("check password", "").replace("password strength", "").strip()
-        return SecurityAssistant.check_password(pwd)
+        return SecurityAssistant.check_password(q.replace("check password", "").replace("password strength", "").strip())
 
-    # WEB ENGINE
+    # ── WEB ENGINE ─────────────────────────────
     if "read website" in q or "open website" in q or "browse" in q:
         url = q.replace("read website", "").replace("open website", "").replace("browse", "").replace("noke", "").strip()
         return WebEngine.read_website(url)
@@ -296,7 +394,7 @@ def handle_pc_command(query: str):
         topic = q.replace("deep search", "").replace("search internet for", "").replace("noke", "").strip()
         return WebEngine.deep_search(topic)
 
-    # AUTONOMOUS CODE WRITER
+    # ── AUTONOMOUS CODE WRITER ─────────────────
     if any(k in q for k in ["write a script", "create a tool", "build a tool", "write code"]):
         task = q.replace("write a script to", "").replace("create a tool to", "").replace("build a tool for", "").replace("write code for", "").replace("noke", "").strip()
         return SkillForge.create_tool(task)
@@ -304,7 +402,7 @@ def handle_pc_command(query: str):
         tool_name = q.replace("run tool", "").replace("run script", "").replace("execute tool", "").replace("execute script", "").replace("noke", "").strip()
         return SkillForge.run_tool(tool_name)
 
-    # Memory Wipe
+    # ── MEMORY WIPE ────────────────────────────
     if "forget everything" in q or "clear memory" in q:
         conversation_history.clear()
         user_profile.clear()
@@ -319,11 +417,25 @@ def handle_pc_command(query: str):
 #  MAIN LOOP -- VOICE + TYPE DUAL INPUT
 # ===============================================
 def main():
+    # Security checkpoint
+    if not SecurityGuard.authenticate():
+        print("Access denied. NOKE locked.")
+        return
+
+    # Start background PC health monitor
+    PCGuardian.start_monitoring(speak)
+
     user_name = user_profile.get("name", "Able")
     mood      = noke_state.get("mood", "Sharp & Ready")
-    speak(f"Subsystems online, {user_name}. Feeling {mood}. Standing by.")
+    speak(f"Subsystems online, {user_name}. All modules operational. Feeling {mood}. Standing by.")
 
     while True:
+        # Session timeout check
+        if SecurityGuard.has_pin() and SecurityGuard.is_session_expired():
+            speak("Session timed out for security, Sir. Please re-authenticate.")
+            if not SecurityGuard.authenticate():
+                break
+
         print("\n-----------------------------------------")
         print("  [V] Voice  |  [T] Type command")
         mode = input("  Press Enter for Voice, or type T: ").strip().lower()
@@ -338,21 +450,35 @@ def main():
             if not query:
                 continue
 
+        # Update session activity
+        SecurityGuard.touch_session()
+
         if any(t in query.lower() for t in ["shutdown noke", "sleep noke", "goodbye noke", "exit noke"]):
             speak(f"Powering down, {user_name}. Keep pushing forward.")
             save_json(MEMORY_FILE, conversation_history)
+            SecurityGuard.log_event("SESSION_END", "NOKE shut down cleanly")
+            PCGuardian.stop_monitoring()
             break
 
         extract_facts(query)
 
+        # Dispatch
         pc_response = handle_pc_command(query)
         if pc_response:
+            SecurityGuard.log_command(query, pc_response)
             speak(pc_response)
         elif needs_internet(query):
             answer = internet_research(query)
+            SecurityGuard.log_command(query, answer)
+            speak(answer)
+        elif SelfSolver.is_actionable_task(query):
+            speak(f"I do not have a built-in handler for that, {user_name}. Let me engineer a solution right now.")
+            answer = SelfSolver.solve(query)
+            SecurityGuard.log_command(query, answer)
             speak(answer)
         else:
             answer = think(query)
+            SecurityGuard.log_command(query, answer)
             speak(answer)
 
 if __name__ == "__main__":
