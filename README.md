@@ -1,6 +1,6 @@
 # NOKE — Neural Operations & Kinetic Executive
 
-> A personal AI assistant inspired by Tony Stark's J.A.R.V.I.S.
+> A personal AI assistant.
 > Runs 100% offline on your PC. No subscription. No cloud. Your data stays with you.
 
 ---
