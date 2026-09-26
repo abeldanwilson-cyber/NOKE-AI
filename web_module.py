@@ -86,7 +86,7 @@ class WebEngine:
             print(f"\n📥 [NOKE Download]: Starting {'audio' if audio_only else 'video'} download...")
             output_template = os.path.join(DOWNLOADS_DIR, "%(title)s.%(ext)s")
 
-            cmd = ["yt-dlp", "--no-warnings", "-o", output_template]
+            cmd = ["python", "-m", "yt_dlp", "--no-warnings", "-o", output_template]
 
             if audio_only:
                 cmd += ["-x", "--audio-format", "mp3", "--audio-quality", "0"]

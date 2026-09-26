@@ -33,7 +33,7 @@ class TradingAssistant:
             data = requests.get(url, timeout=5).json()
             if coin_id in data:
                 price  = data[coin_id]['usd']
-                change = data[coin_id].get('usd_24h_change', 0)
+                change = data[coin_id].get('usd_24h_change') or 0
                 direction = "up" if change > 0 else "down"
                 return (f"{coin.upper()} is at ${price:,.2f}, Sir. "
                         f"{direction} {abs(change):.2f}% in the last 24 hours.")
@@ -77,9 +77,10 @@ class TradingAssistant:
             coins = requests.get(url, timeout=5).json()
             result = "Top 5 cryptocurrencies by market cap, Sir. "
             for c in coins:
-                direction = "up" if c['price_change_percentage_24h'] > 0 else "down"
+                change = c.get('price_change_percentage_24h') or 0
+                direction = "up" if change > 0 else "down"
                 result += (f"{c['name']} at ${c['current_price']:,.2f}, "
-                           f"{direction} {abs(c['price_change_percentage_24h']):.1f}%. ")
+                           f"{direction} {abs(change):.1f}%. ")
             return result
         except Exception:
             return "Crypto rankings unavailable, Sir."

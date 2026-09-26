@@ -57,15 +57,21 @@ class AutomationEngine:
         phone_number = contacts[name]
         
         try:
-            # wait_time=15 (time to open browser and load web.whatsapp)
-            # tab_close=True, close_time=3 (closes tab 3 seconds after sending)
-            pywhatkit.sendwhatmsg_instantly(
-                phone_no=phone_number,
-                message=message,
-                wait_time=15,
-                tab_close=True,
-                close_time=3
-            )
-            return f"WhatsApp message sent to {name.capitalize()}, Sir."
+            # Threading so NOKE doesn't freeze while the browser opens
+            import threading
+            def _send():
+                try:
+                    pywhatkit.sendwhatmsg_instantly(
+                        phone_no=phone_number,
+                        message=message,
+                        wait_time=15,
+                        tab_close=True,
+                        close_time=3
+                    )
+                except Exception as e:
+                    print(f"\n[WhatsApp Error]: {e}")
+            
+            threading.Thread(target=_send, daemon=True).start()
+            return f"Initiating WhatsApp transmission to {name.capitalize()}, Sir. Please do not touch the mouse for 15 seconds."
         except Exception as e:
-            return f"Failed to send WhatsApp message, Sir. Error: {e}"
+            return f"Failed to start WhatsApp thread, Sir. Error: {e}"

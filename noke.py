@@ -32,17 +32,28 @@ except ImportError:
 # ===============================================
 #  VOICE ENGINE
 # ===============================================
+import threading
+
+_speak_lock = threading.Lock()
+
 def speak(text: str, rate: int = 190):
     print(f"\n[NOKE]: {text}")
-    try:
-        engine = pyttsx3.init()
-        engine.setProperty('rate', rate)
-        engine.setProperty('volume', 1.0)
-        engine.say(text)
-        engine.runAndWait()
-        engine.stop()
-    except Exception as e:
-        print(f"   Voice error: {e}")
+    with _speak_lock:
+        try:
+            try:
+                import pythoncom
+                pythoncom.CoInitialize()
+            except ImportError:
+                pass
+            
+            engine = pyttsx3.init()
+            engine.setProperty('rate', rate)
+            engine.setProperty('volume', 1.0)
+            engine.say(text)
+            engine.runAndWait()
+            engine.stop()
+        except Exception as e:
+            print(f"   Voice error: {e}")
 
 # ===============================================
 #  AUDIO EARS
