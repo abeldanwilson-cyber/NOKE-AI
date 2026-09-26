@@ -163,6 +163,18 @@ ethereum price
 stock price AAPL
 indian market
 market summary
+alert me if bitcoin goes above 65000
+list alerts
+clear alerts for bitcoin
+```
+
+### Automation & Daily Report
+```
+give me the daily report
+set report time to 18:00
+add contact dad with number +919876543210
+list contacts
+send whatsapp to dad saying hello there
 ```
 
 ### Internet & Research
@@ -215,6 +227,9 @@ NOKE-AI/
 |-- noke.py              Main brain and voice loop
 |-- system_control.py    Full PC control (files, processes, power, clipboard)
 |-- trading_module.py    Stock and crypto trading tools
+|-- trading_bot.py       Background trading alert monitor
+|-- automation_module.py WhatsApp automation engine
+|-- daily_report.py      Daily AI briefing scheduler
 |-- security_module.py   Cybersecurity and network tools
 |-- coder_module.py      Autonomous Python script writer
 |-- web_module.py        Internet, Wikipedia, YouTube, news downloader
@@ -231,6 +246,8 @@ noke_memory.json         Your conversation history
 noke_profile.json        Your personal profile (name etc.)
 noke_state.json          NOKE's current mood state
 noke_audit.log           Command audit trail
+noke_contacts.json       Saved WhatsApp contacts
+noke_alerts.json         Saved trading price alerts
 skills/                  Scripts NOKE writes for itself
 noke_downloads/          Downloaded videos and audio
 ```
