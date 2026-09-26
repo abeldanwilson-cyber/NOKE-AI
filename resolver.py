@@ -84,8 +84,12 @@ STRICT RULES:
             )
             raw = response['message']['content'].strip()
             # Strip markdown code fences if present
-            raw = re.sub(r"^```(?:python)?\s*", "", raw, flags=re.IGNORECASE | re.MULTILINE)
-            raw = re.sub(r"\s*```\s*$", "", raw, flags=re.MULTILINE)
+            if "```" in raw:
+                matches = re.findall(r"```(?:python)?(.*?)```", raw, re.DOTALL | re.IGNORECASE)
+                if matches:
+                    raw = matches[0].strip()
+                else:
+                    raw = raw.replace("```python", "").replace("```", "").strip()
             return raw.strip()
         except Exception as e:
             return f"# Code generation failed: {e}"
@@ -185,8 +189,12 @@ STRICT RULES:
                     messages=[{"role": "user", "content": fix_prompt}]
                 )
                 code = fix_response['message']['content'].strip()
-                code = re.sub(r"^```(?:python)?\s*", "", code, flags=re.IGNORECASE | re.MULTILINE)
-                code = re.sub(r"\s*```\s*$", "", code, flags=re.MULTILINE)
+                if "```" in code:
+                    matches = re.findall(r"```(?:python)?(.*?)```", code, re.DOTALL | re.IGNORECASE)
+                    if matches:
+                        code = matches[0].strip()
+                    else:
+                        code = code.replace("```python", "").replace("```", "").strip()
                 valid, error = SelfSolver._validate_code(code)
                 if not valid:
                     return f"I generated a solution but the code has a syntax issue I could not resolve, Sir: {error}"

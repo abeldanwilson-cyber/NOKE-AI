@@ -34,8 +34,14 @@ STRICT RULES:
             raw_code = response['message']['content'].strip()
 
             # Clean out any markdown backticks if Llama wrapped it in ```python ... ```
-            cleaned_code = re.sub(r"^```(?:python)?\s*", "", raw_code, flags=re.IGNORECASE)
-            cleaned_code = re.sub(r"\s*```$", "", cleaned_code)
+            if "```" in raw_code:
+                matches = re.findall(r"```(?:python)?(.*?)```", raw_code, re.DOTALL | re.IGNORECASE)
+                if matches:
+                    cleaned_code = matches[0].strip()
+                else:
+                    cleaned_code = raw_code.replace("```python", "").replace("```", "").strip()
+            else:
+                cleaned_code = raw_code.strip()
 
             # Safety check: Verify syntax before saving
             try:

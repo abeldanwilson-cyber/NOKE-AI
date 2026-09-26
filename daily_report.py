@@ -79,7 +79,7 @@ System: {pc_health}
                 current_time = now.strftime("%H:%M")
                 current_day = now.strftime("%Y-%m-%d")
 
-                if current_time == DailyReporter._report_time and current_day != last_run_day:
+                if current_time >= DailyReporter._report_time and current_day != last_run_day:
                     DailyReporter._speak_fn("Compiling your daily report, Sir. Please hold.")
                     report = DailyReporter.generate_report(user_name)
                     DailyReporter._speak_fn(report)
