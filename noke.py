@@ -20,6 +20,9 @@ from web_module      import WebEngine
 from security_guard  import SecurityGuard
 from pc_guardian     import PCGuardian
 from resolver        import SelfSolver
+from trading_bot     import TradingBot
+from automation_module import AutomationEngine
+from daily_report    import DailyReporter
 
 try:
     from ddgs import DDGS
@@ -345,7 +348,54 @@ def handle_pc_command(query: str):
     if "clear audit log" in q or "clear log" in q:
         return SecurityGuard.clear_audit_log()
 
-    # ── TRADING ENGINE ─────────────────────────
+    # ── WHATSAPP & AUTOMATION ──────────────────
+    if "add contact" in q:
+        # e.g., "add contact dad with number +919876543210"
+        try:
+            parts = q.replace("add contact ", "").split(" with number ")
+            name = parts[0]
+            number = parts[1]
+            return AutomationEngine.add_contact(name, number)
+        except Exception:
+            return "Please use format: Add contact [name] with number [number]."
+    if "list contacts" in q or "show contacts" in q:
+        return AutomationEngine.list_contacts()
+    if "send whatsapp" in q:
+        # e.g., "send whatsapp to dad saying hello there"
+        try:
+            parts = q.replace("send whatsapp to ", "").split(" saying ")
+            name = parts[0]
+            message = parts[1]
+            return AutomationEngine.send_whatsapp(name, message)
+        except Exception:
+            return "Please use format: Send WhatsApp to [name] saying [message]."
+
+    # ── DAILY REPORT ───────────────────────────
+    if "give me the daily report" in q or "daily report" in q or "evening report" in q:
+        speak("Compiling your report instantly, Sir. Please hold.")
+        return DailyReporter.generate_report(user_name)
+    if "set report time to" in q:
+        t = q.replace("set report time to", "").strip()
+        return DailyReporter.set_report_time(t)
+
+    # ── TRADING ENGINE & ALERTS ────────────────
+    if "alert me if" in q or "set price alert" in q:
+        # e.g., "alert me if bitcoin goes above 65000"
+        try:
+            clean = q.replace("set price alert for ", "").replace("alert me if ", "").replace(" goes ", " ").replace(" is ", " ")
+            parts = clean.split()
+            symbol = parts[0]
+            condition = parts[1] # above or below
+            target = float(parts[2])
+            return TradingBot.add_alert(symbol, target, condition)
+        except Exception:
+            return "Please use format: Alert me if [symbol] goes [above/below] [price]."
+    if "list alerts" in q or "show trading alerts" in q:
+        return TradingBot.list_alerts()
+    if "clear alerts" in q:
+        symbol = q.replace("clear alerts for ", "").replace("clear alerts", "").strip()
+        return TradingBot.clear_alerts(symbol if symbol else None)
+    
     if "stock price" in q or "share price" in q:
         return TradingAssistant.get_stock_price(q.split()[-1].upper())
     if any(c in q for c in ["bitcoin", "btc", "ethereum", "eth", "crypto", "solana", "doge"]):
@@ -424,6 +474,12 @@ def main():
 
     # Start background PC health monitor
     PCGuardian.start_monitoring(speak)
+    
+    # Start Trading Bot
+    TradingBot.start_monitoring(speak)
+    
+    # Start Daily Reporter
+    DailyReporter.start_monitoring(speak, user_profile.get("name", "Able"))
 
     user_name = user_profile.get("name", "Able")
     mood      = noke_state.get("mood", "Sharp & Ready")
@@ -458,6 +514,8 @@ def main():
             save_json(MEMORY_FILE, conversation_history)
             SecurityGuard.log_event("SESSION_END", "NOKE shut down cleanly")
             PCGuardian.stop_monitoring()
+            TradingBot.stop_monitoring()
+            DailyReporter.stop_monitoring()
             break
 
         extract_facts(query)
